@@ -12,7 +12,7 @@ const twitterClient = new Twitter({
 
 export default [
   Router.get('/api/twitter', wrap(async function (req, res) {
-    twitterClient.get('statuses/home_timeline', { count: 200, exclude_replies: true, include_entities: true }, (err, data, response) => {
+    twitterClient.get('statuses/home_timeline', { count: 200, exclude_replies: true, include_entities: false }, (err, data, response) => {
       res.json(data);
     });
   })),
