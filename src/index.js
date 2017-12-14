@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import bluebird from 'bluebird'
 import CONFIG from '../config/';
 import routes from './routes/';
+import TwitterParser from './modules/twitterParser';
+import Core from './modules/core';
 
 const app = Express();
 
@@ -20,6 +22,15 @@ mongoose.connect(CONFIG.db.url, {
   console.log(`DB '${dbData.name}' connected! Nice!`);
 });
 
+
+const twitterParser = new TwitterParser({
+  consumer_key: 'CA1M166WKQ7gkiVYrhqByKLTP',
+  consumer_secret: 'XFAf6NHsyMBRT0HhVGgDB90iJIEnmd5DUUvVCf75wlBtCMOCZ6',
+  access_token_key: '850801796-T3Dig8y15kRr3DrRQP1qgRwjhcr1NpWabtuVyxhX',
+  access_token_secret: 'kNgrGpIIOhW3NTy1lTj1Z7vEJlLtqGYyKq2n5hl4GJNI8'
+});
+const core = new Core({ twitterParser });
+core.init();
 
 app.set('trust proxy', 1);
 app.use(routes);
