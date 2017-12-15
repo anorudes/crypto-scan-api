@@ -1,5 +1,5 @@
 import Express from 'express';
-import winston from 'winston';
+import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import bluebird from 'bluebird';
 import CONFIG from '../config/';
@@ -21,7 +21,6 @@ mongoose.connect(CONFIG.db.url, {
   console.log(`DB '${dbData.name}' connected! Nice!`);
 });
 
-
 const twitterParser = new TwitterParser({
   consumer_key: 'CA1M166WKQ7gkiVYrhqByKLTP',
   consumer_secret: 'XFAf6NHsyMBRT0HhVGgDB90iJIEnmd5DUUvVCf75wlBtCMOCZ6',
@@ -32,12 +31,19 @@ const core = new Core({ twitterParser });
 core.init();
 
 app.set('trust proxy', 1);
+app.use(bodyParser.json({
+  limit: '50mb',
+}));
+app.use(bodyParser.urlencoded({
+  extended: true,
+  limit: '50mb',
+}));
 app.use(routes);
 app.use((err, req, res, next) => {
   if (err) {
-    winston.info('error');
-    winston.info(err);
+    console.log(err);
   }
+
   next();
 });
 

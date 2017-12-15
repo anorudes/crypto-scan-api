@@ -1,18 +1,19 @@
-import Express from 'express';
 import Config from '../models/config';
 
 export async function getConfigs(req, res) {
   const { user } = req.params.user;
-  const docs = await Config.find({ user: 'global' });
-  const userDocs = await Config.find({ user });
-  const globalConfig = docs && JSON.parse(docs.toJSON().config);
-  const userConfig = userDocs && JSON.parse(userDocs.toJSON().config);
-  const userData = userDocs && JSON.parse(docs.toJSON().data);
+  const docs = await Config.findOne({ user: 'global' });
+  const userDocs = await Config.findOne({ user });
 
-  const config = {
+  const globalConfig = docs && docs.config && JSON.parse(docs.config);
+  const userConfig = userDocs && userDocs.config && JSON.parse(userDocs.config);
+  const userData = userDocs && userDocs.data && JSON.parse(userDocs.data);
+
+  const config = globalConfig && userConfig
+  ? {
     ...globalConfig,
     ...userConfig,
-  };
+  } : null;
   const data = userData;
 
   res.json({
@@ -29,18 +30,17 @@ export async function saveConfigs(req, res) {
   } = req.body;
 
   // Find global config
-  const docs = await Config.find({ user: 'global' });
+  const docs = await Config.findOne({ user: 'global' });
   if (!docs) {
     // Save global config
-    const newConfig = new Config;
-    newConfig.set({
+    const newConfig = new Config({
       config,
       user: 'global',
     });
     newConfig.save();
   }
 
-  const userDocs = await Config.find({ user });
+  const userDocs = await Config.findOne({ user });
 
   if (userDocs) {
     // Update user config
@@ -49,9 +49,7 @@ export async function saveConfigs(req, res) {
     userDocs.save();
   } else {
     // Create new user config
-    const newConfig = new Config;
-
-    newConfig.set({
+    const newConfig = new Config({
       user,
       config,
       data,
