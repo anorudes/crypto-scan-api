@@ -9,7 +9,6 @@ import Core from './modules/core';
 
 const app = Express();
 
-
 // DB
 mongoose.Promise = bluebird;
 mongoose.connect(CONFIG.db.url, {
