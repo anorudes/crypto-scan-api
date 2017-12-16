@@ -21,25 +21,35 @@ export async function getConfigs(req, res) {
 export async function saveConfigs(req, res) {
   const {
     config,
+    configChangedCoinId,
     data,
     user,
   } = req.body;
-
   // Find global config
   const docs = await Config.findOne();
 
   if (docs && docs.config) {
     // Update global config
     const prevConfig = JSON.parse(docs.config);
-    docs.config = JSON.stringify({
+    const updatedConfig = {
       ...config, // new fields
       ...prevConfig, // return prev fields from global config
-      list: [ // update list
-        ...prevConfig.list,
-        ...config.list,
-      ],
-    });
+    };
 
+    if (configChangedCoinId) {
+      updatedConfig.list = updatedConfig.list.map(item => {
+        if (item.coinmarketId === configChangedCoinId) {
+          const newCoinData = config.list
+            .filter(itemData => itemData.coinmarketId === configChangedCoinId)[0];
+
+          return newCoinData;
+        } else {
+          return item;
+        }
+      });
+    }
+
+    docs.config = JSON.stringify(updatedConfig);
     docs.save();
   } else {
     // Save global config
