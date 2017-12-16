@@ -1,64 +1,76 @@
 import Config from '../models/config';
+import CoinData from '../models/coinData';
 
 export async function getConfigs(req, res) {
-  const { user } = req.params.user;
-  const docs = await Config.findOne({ user: 'global' });
-  const userDocs = await Config.findOne({ user });
-
+  const { user } = req.params;
+  const docs = await Config.findOne();
   const globalConfig = docs && docs.config && JSON.parse(docs.config);
-  const userConfig = userDocs && userDocs.config && JSON.parse(userDocs.config);
-  const userData = userDocs && userDocs.data && JSON.parse(userDocs.data);
+  const coinsData = await CoinData.find({ user });
 
-  const config = globalConfig && userConfig
-  ? {
-    ...globalConfig,
-    ...userConfig,
-  } : null;
-  const data = userData;
+  const data = {};
+  coinsData.map(coinData => {
+    data[coinData.id] = coinData.data;
+  });
 
   res.json({
-    config,
+    config: globalConfig,
     data,
   });
 }
 
 export async function saveConfigs(req, res) {
   const {
-    user,
-    data,
     config,
+    data,
+    user,
   } = req.body;
 
   // Find global config
-  const docs = await Config.findOne({ user: 'global' });
-  if (!docs) {
+  const docs = await Config.findOne();
+
+  if (docs && docs.config) {
+    // Update global config
+    docs.config = JSON.stringify({
+      ...JSON.parse(docs.config),
+      ...config,
+    });
+
+    docs.save();
+  } else {
     // Save global config
     const newConfig = new Config({
-      config,
-      user: 'global',
+      config: JSON.stringify(config),
     });
     newConfig.save();
   }
 
-  const userDocs = await Config.findOne({ user });
+  // Save coin data
+  const updatedCoinsId = {};
+  const coinsData = await CoinData.find({ user });
+  
+  // Update coindata
+  coinsData.map(coinData => {
+    if (data[coinData.id]) {
+      coinData.data = data[coinData.id];
+      coinData.save();
+      updatedCoinsId[coinData.id] = true;
+    }
+  });
 
-  if (userDocs) {
-    // Update user config
-    userDocs.config = config;
-    userDocs.data = data;
-    userDocs.save();
-  } else {
-    // Create new user config
-    const newConfig = new Config({
-      user,
-      config,
-      data,
-    });
-    newConfig.save();
+  // Add new coins data
+  Object.keys(data).map(coinId => {
+    if (!updatedCoinsId[coinId]) {
+      const newCoinData = new CoinData({
+        user,
+        id: coinId,
+        data: data[coinId],
+      });
+      newCoinData.save();
+    }
+  });
 
-    res.json({
-      success: true,
-    });
-  }
+  res.json({
+    success: true,
+  });
 }
 

@@ -2,8 +2,6 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const configSchema = new Schema({
-  user: String,
-  data: String,
   config: String,
 });
 
