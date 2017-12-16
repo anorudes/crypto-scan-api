@@ -30,9 +30,14 @@ export async function saveConfigs(req, res) {
 
   if (docs && docs.config) {
     // Update global config
+    const prevConfig = JSON.parse(docs.config);
     docs.config = JSON.stringify({
-      ...JSON.parse(docs.config),
-      ...config,
+      ...config, // new fields
+      ...prevConfig, // return prev fields from global config
+      list: [ // update list
+        ...prevConfig.list,
+        ...config.list,
+      ],
     });
 
     docs.save();
@@ -47,7 +52,7 @@ export async function saveConfigs(req, res) {
   // Save coin data
   const updatedCoinsId = {};
   const coinsData = await CoinData.find({ user });
-  
+
   // Update coindata
   coinsData.map(coinData => {
     if (data[coinData.id]) {
