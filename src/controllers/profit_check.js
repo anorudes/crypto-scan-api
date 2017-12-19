@@ -1,22 +1,7 @@
-import bittrex from 'node.bittrex.api';
+import bittrex from '../adapters/bittrex';
 
-
-const API_KEY_BITTREX = 'fcb485d9c39f413591bff349df9f2fee';
-const API_SECRET_BITTREX = '730c23f56b0741329d4f2e973c7af985';
-
-const BASE_URL_BITTREX = 'https://bittrex.com/api/v1.1';
-const BASE_URL_BITTREX_V2 = 'https://bittrex.com/Api/v2.0';
-
-bittrex.options({
-  apikey: API_KEY_BITTREX,
-  apisecret: API_SECRET_BITTREX,
-  // stream: false,
-  verbose: true,
-  // cleartext: false,
-  baseUrl: BASE_URL_BITTREX,
-  baseUrlv2: BASE_URL_BITTREX_V2,
-});
-
+const exchange = bittrex;
+exchange.init();
 
 const openOrdersAnalyzer = (data) => {
   const openOrdersByMarket = {};
@@ -31,7 +16,6 @@ const openOrdersAnalyzer = (data) => {
         history: [],
       };
       if (order.OrderType === 'LIMIT_SELL') {
-        console.log(order.Exchange);
         openOrdersByMarket[order.Exchange].future_sell_orders++;
         openOrdersByMarket[order.Exchange].profit_with_future_sell += (order.Limit * order.Quantity);
       }
@@ -74,9 +58,7 @@ const historyAnalyzer = (data, openOrders) => {
     ordersByMarket[order.Exchange].history.push(order);
   });
 
-  console.log('yes!');
   Object.keys(ordersByMarket).map(name => {
-    console.log('==', name);
     if (typeof openOrders[name] !== 'undefined') {
       ordersByMarket[name].profit_with_future_sell = ordersByMarket[name].profit + openOrders[name].profit_with_future_sell;
     }
@@ -93,48 +75,10 @@ const historyAnalyzer = (data, openOrders) => {
 
 export default async function (req, res) {
 
-  let myOrdersProfit = [];
-  let myOrders = {};
-  const waitPromises = {
-    open: false,
-    history: false,
-  };
-  const waitPromisesArray = [];
+  const openOrders = await exchange.getOpenOrders();
+  const orderHistory = await exchange.getOrderHistory();
 
-  // waitPromises.push(new Promise((resolve, reject) => {
-  //   bittrex.sendCustomRequest(`${BASE_URL_BITTREX}/market/getopenorders`, (data, err) => {
-  //     if (err) {
-  //       console.error(err);
-  //       reject();
-  //       return false;
-  //     }
-  //     myOrders = data.result;
-  //     resolve();
-  //   }, true);
-  // }));
-
-  await new Promise((resolve, reject) => {
-    bittrex.sendCustomRequest(`${BASE_URL_BITTREX}/market/getopenorders`, (data, err) => {
-      if (err) {
-        console.error(err);
-        reject();
-        return false;
-      }
-      myOrders = openOrdersAnalyzer(data.result);
-      resolve();
-    }, true);
-  });
-  await new Promise((resolve, reject) => {
-    bittrex.sendCustomRequest(`${BASE_URL_BITTREX}/account/getorderhistory`, (data, err) => {
-      if (err) {
-        console.error(err);
-        reject();
-        return false;
-      }
-      myOrdersProfit = historyAnalyzer(data.result, myOrders);
-      resolve();
-    }, true);
-  });
+  const myOrdersProfit = historyAnalyzer(orderHistory, openOrdersAnalyzer(openOrders));
 
   res.json({
     myOrdersProfit,

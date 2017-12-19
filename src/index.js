@@ -9,6 +9,8 @@ import Core from './modules/core';
 
 const app = Express();
 
+global.rootPath = __dirname;
+
 // DB
 mongoose.Promise = bluebird;
 mongoose.connect(CONFIG.db.url, {
@@ -27,8 +29,8 @@ const twitterParser = new TwitterParser({
   access_token_key: '850801796-T3Dig8y15kRr3DrRQP1qgRwjhcr1NpWabtuVyxhX',
   access_token_secret: 'kNgrGpIIOhW3NTy1lTj1Z7vEJlLtqGYyKq2n5hl4GJNI8',
 });
-const core = new Core({ twitterParser });
-core.init();
+// const core = new Core({ twitterParser });
+// core.init();
 
 app.set('trust proxy', 1);
 app.use(bodyParser.json({
