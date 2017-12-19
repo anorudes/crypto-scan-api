@@ -20,8 +20,8 @@ export default async function (req, res) {
   const exchangeTickInterval = exchangeAdapter.tickIntervals[tickInterval];
 
   if (!exchangeTickInterval) {
-    notify(res, `ERROR. Parameter tickInterval (yours: '${tickInterval}')can be only one of follow:`);    
-    notify(res, 'min, min5, min15, min30, hour, day, week, month');    
+    notify(res, `ERROR. Parameter tickInterval (yours: '${tickInterval}')can be only one of follow:`);
+    notify(res, 'min, min5, min15, min30, hour, day, week, month');
     res.status(500).end();
   }
   // const tickInterval = tickIntervalsByMarket[exchange][tickIntervalFromUser]; // wanna use standart ticked interval
@@ -56,7 +56,7 @@ export default async function (req, res) {
   };
 
   const result = await grabAndSaveCandles();
-  notify(result);
+  notify(res, result);
 
   res.status(200).end();
 };
