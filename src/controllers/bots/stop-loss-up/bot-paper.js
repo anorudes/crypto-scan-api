@@ -1,10 +1,10 @@
-import bittrex from '../../adapters/bittrex';
-import bittrex_history from '../../adapters/bittrex_history';
+// import bittrex from '../../adapters/bittrex';
+// import bittrex_history from '../../adapters/bittrex_history';
 import RM from '../requests_manager';
 import OSNotifier from 'node-notifier';
 
 // const exchange = bittrex;
-const exchange = bittrex_history;
+// const exchange = bittrex_history;
 
 const CHECK_CANDLE_INTERVAL = 60 * 1000;
 

@@ -8,7 +8,7 @@
  */
 import bittrex from 'node.bittrex.api';
 import HistoryData from '../models/historyData';
-import HistoryBalances from '../models/historyBalances';
+// import HistoryBalances from '../models/historyBalances';
 // import jsonfile from 'jsonfile';
 
 const API_KEY_BITTREX = 'fcb485d9c39f413591bff349df9f2fee';
@@ -186,7 +186,7 @@ const wsSubsribeOnTicketsUpdate = (markets, cb) => {
 
 
 export default {
-  name: 'bittrex_history',
+  name: 'bittrex_paper',
   proxy: bittrex,
   init,
   getOpenOrders,

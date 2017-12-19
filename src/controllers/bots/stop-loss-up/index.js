@@ -1,6 +1,6 @@
 import notify from '../../../utils/notify';
 import BotReal from './bot-real';
-import BotPaper from './bot-paper';
+// import BotPaper from './bot-paper';
 
 const exchanges = {
   bittrex: require('../../../adapters/bittrex'),
@@ -37,7 +37,7 @@ export default async function (req, res) {
   }
 
   const exchangeAdapter = exchanges[exchange];
-  await exchangeAdapter.init();
+  await exchangeAdapter.init(); // TODO: add API KEY/ SECRET from user data
 
   if (marketOrTicknterval && exchangeAdapter.tickIntervals[marketOrTicknterval] ) {
     tickInterval = marketOrTicknterval;
@@ -47,19 +47,20 @@ export default async function (req, res) {
     tickInterval = defaultOptions.tickInterval;
   }
 
-  const bot = isPaperMode ? new BotPaper(exchangeAdapter, market, tickInterval) : new BotReal(exchangeAdapter, market, tickInterval);
+  // const bot = isPaperMode ? new BotPaper(exchangeAdapter, market, tickInterval) : new BotReal(exchangeAdapter, market, tickInterval);
+  // const bot = new BotReal(exchangeAdapter, market, tickInterval);
 
-  // subscribe on events
-  bot.eventCenter.on('message', (text) => {
-    notify(res, text);
-  });
+  // // subscribe on events
+  // bot.eventCenter.on('message', (text) => {
+  //   notify(res, text);
+  // });
 
-  bot.eventCenter.on('stop', (text) => {
-    notify(res, text);
-    notify(res, 'Bot stopped. Thx to all, bye!');
-    res.status(200).end();
-    return false;
-  });
+  // bot.eventCenter.on('stop', (text) => {
+  //   notify(res, text);
+  //   notify(res, 'Bot stopped. Thx to all, bye!');
+  //   res.status(200).end();
+  //   return false;
+  // });
 
-  bot.start();
+  // bot.start();
 };

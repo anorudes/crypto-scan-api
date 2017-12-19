@@ -1,10 +1,9 @@
-import bittrex from '../../adapters/bittrex';
-import bittrex_history from '../../adapters/bittrex_history';
-import RM from '../requests_manager';
+import RM from '../../../utils/requests_manager';
 import OSNotifier from 'node-notifier';
 
+
 // const exchange = bittrex;
-const exchange = bittrex_history;
+// const exchange = bittrex_history;
 
 const CHECK_CANDLE_INTERVAL = 60 * 1000;
 
@@ -198,7 +197,7 @@ export default async function (req, res) {
     BV: 7.80269322 }
 
 */
-  // startCheckingCandles(marketsToCheck, checkForOrderChange);
+  startCheckingCandles(marketsToCheck, checkForOrderChange);
 
     // await exchange.sockets.start();
 
