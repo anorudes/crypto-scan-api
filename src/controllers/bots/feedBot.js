@@ -170,11 +170,11 @@ class FeedBot {
   }
 
   _sendToDiscord(content) {
-    // axios.post(this.config.discordWebhook, {
-    //   content,
-    // }, {
-    //   headers: { 'content-type': 'application/json' },
-    // });
+    axios.post(this.config.discordWebhook, {
+      content,
+    }, {
+      headers: { 'content-type': 'application/json' },
+    });
   }
 }
 
