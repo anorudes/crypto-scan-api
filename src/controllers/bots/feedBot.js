@@ -14,13 +14,16 @@ class FeedBot {
 
     this.config = botConfig.config;
     this.cryptoScan = new CryproScanCore(this.config);
+    this.notifyInterval = setInterval(this.notifyFromQueue.bind(this), 1000);
+    this.notifyList = [];
+    setInterval(this.startParse.bind(this), 3000000);
 
     this.startParse();
-    setInterval(this.startParse.bind(this), 3000000);
   }
 
   async startParse() {
     console.log('Get coinmarket data');
+
     const tokensPrice = await this.cryptoScan.getTokensPrice();
     const coinFeed = await CoinFeed.find();
     const coinsFeedConfig = this.config.list;
@@ -118,16 +121,23 @@ class FeedBot {
     ) {
       console.log('check feed');
       // Check feed with prev result
-      const twitterFeedEqual = this._checkFeedEqual(feed.twitter, coinPrevFeed.twitter);
-      const redditFeedEqual = this._checkFeedEqual(feed.reddit, coinPrevFeed.reddit);
+      const twitterFeedEqual = this.checkFeedEqual(feed.twitter, coinPrevFeed.twitter);
+      const redditFeedEqual = this.checkFeedEqual(feed.reddit, coinPrevFeed.reddit);
 
       if (!twitterFeedEqual.isEqual || !redditFeedEqual.isEqual) {
         // Push to discord ...
 
         // Print new feed
-        this._sendToDiscord(`----- ${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}% ----- `);
-        twitterFeedEqual.newFeed.map(this._notifyFeedItem.bind(this));
-        redditFeedEqual.newFeed.map(this._notifyFeedItem.bind(this));
+        this.addToNotifyQueue(`----- ${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}% ----- `);
+
+        const completeNewFeed = [
+          ...twitterFeedEqual.newFeed,
+          ...redditFeedEqual,
+        ].sort((a, b) => new Date(a.date) < new Date(b.date) ? 1 : -1);
+
+        completeNewFeed.map(item => {
+          this.addToNotify(`${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n${formatDate(item.date)}\n<${item.url}>`);
+        });
       } else {
         console.log(`${id}: feed not changed`);
       }
@@ -139,7 +149,7 @@ class FeedBot {
     coinData.save();
   }
 
-  _checkFeedEqual(feed, prevFeed) {
+  checkFeedEqual(feed, prevFeed) {
     // Check feed equal
     if (!feed) feed = [];
     if (!prevFeed) prevFeed = [];
@@ -164,17 +174,21 @@ class FeedBot {
     };
   }
 
-  _notifyFeedItem(item) {
-    // Print new feed
-    this._sendToDiscord(`${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n${formatDate(item.date)} / ${item.author}\n<${item.url}>`);
+  addToNotifyQueue(content) {
+    this.notifyList.push(content);
   }
 
-  _sendToDiscord(content) {
-    axios.post(this.config.discordWebhook, {
-      content,
-    }, {
-      headers: { 'content-type': 'application/json' },
-    });
+  notifyFromQueue() {
+    if (this.notifyList && this.notifyList[0]) {
+      const content = this.notifyList[0];
+      axios.post(this.config.discordWebhook, {
+        content,
+      }, {
+        headers: { 'content-type': 'application/json' },
+      });
+
+      this.notifyList.shift();
+    }
   }
 }
 
