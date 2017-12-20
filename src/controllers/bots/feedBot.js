@@ -136,7 +136,7 @@ class FeedBot {
         ].sort((a, b) => new Date(a.date) < new Date(b.date) ? 1 : -1);
 
         completeNewFeed.map(item => {
-          this.addToNotifyQueue(`${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n${formatDate(item.date)}\n<${item.url}>`);
+          this.addToNotifyQueue(`${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n${formatDate(item.date)}\n<${item.url}>\n---------------------------------------------`);
         });
       } else {
         console.log(`${id}: feed not changed`);
