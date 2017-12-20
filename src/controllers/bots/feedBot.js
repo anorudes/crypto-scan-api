@@ -49,39 +49,38 @@ class FeedBot {
         ? calcPercentage(tokenPrice.price_btc, prevCoinmarket.price_btc)
         : 0;
 
+      const coinmarket = {
+        ...tokenPrice,
+        percentUsdFromPrevCheck,
+        percentBtcFromPrevCheck,
+      };
+
       // Save changed coins
       if (
-        +percentUsdFromPrevCheck <= this.config.savedMaxPercentUsdSaved &&
-        +percentUsdFromPrevCheck >= this.config.savedMinPercentUsdSaved &&
+        // +percentUsdFromPrevCheck <= this.config.savedMaxPercentUsdSaved &&
+        +percentUsdFromPrevCheck >= 3 &&
         +percentBtcFromPrevCheck >= 1
       ) {
         console.log('Price + for ' + tokenPrice.id);
-
-        const coinmarket = {
-          ...tokenPrice,
-          percentUsdFromPrevCheck,
-          percentBtcFromPrevCheck,
-        };
-
         changedCoins.push({
           id: tokenPrice.id,
           feed: coinData.feed,
           coinmarket,
         });
+      }
 
-        if (coinData) {
-          // Update
-          coinData.coinmarket = coinmarket;
-          await coinData.save();
-        } else {
-          // Create
-          const newCoinData = new CoinFeed({
-            coinId: tokenPrice.id,
-            coinmarket,
-          });
+      if (coinData) {
+        // Update
+        coinData.coinmarket = coinmarket;
+        await coinData.save();
+      } else {
+        // Create
+        const newCoinData = new CoinFeed({
+          coinId: tokenPrice.id,
+          coinmarket,
+        });
 
-          await newCoinData.save();
-        }
+        await newCoinData.save();
       }
 
       return tokenPrice;
