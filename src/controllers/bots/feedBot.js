@@ -16,17 +16,23 @@ class FeedBot {
     this.cryptoScan = new CryproScanCore(this.config);
 
     this.startParse();
-    setInterval(this.startParse, this.config.updatePriceInterval);
+    setInterval(this.startParse, 3000000);
   }
 
   async startParse() {
     console.log('Get coinmarket data');
     const tokensPrice = await this.cryptoScan.getTokensPrice();
     const coinFeed = await CoinFeed.find();
+    const coinsFeedConfig = this.config.list;
     const changedCoins = [];
 
     // Get changes coins
     await tokensPrice.map(async tokenPrice => {
+      // Only for our coins
+      if (!coinsFeedConfig.filter(item => item.coinmarketId === tokenPrice.id).length) {
+        return false;
+      }
+
       // Get coin data
       const coinData = coinFeed
         .filter(item => (item || {}).coinId === tokenPrice.id)[0];
@@ -47,9 +53,17 @@ class FeedBot {
         +percentBtcFromPrevCheck >= 1
       ) {
         console.log('Price changed for ' + tokenPrice.id);
+
+        const coinmarket = {
+          ...tokenPrice,
+          percentUsdFromPrevCheck,
+          percentBtcFromPrevCheck,
+        };
+
         changedCoins.push({
           id: tokenPrice.id,
           data: coinData,
+          coinmarket,
         });
 
         if (coinData) {
@@ -64,11 +78,7 @@ class FeedBot {
           // Create
           const newCoinData = new CoinFeed({
             coinId: tokenPrice.id,
-            coinmarket: {
-              ...tokenPrice,
-              percentBtcFromPrevCheck,
-              percentUsdFromPrevCheck,
-            },
+            coinmarket,
           });
 
           await newCoinData.save();
@@ -91,12 +101,12 @@ class FeedBot {
     // Start auto parse feed for changedCoins
     changedCoins.map((coinData, index) => {
       this.timers.push(setTimeout(() => {
-        this.updateTokenFeed(coinData.id, coinData.data);
+        this.updateTokenFeed(coinData.id, coinData.data, coinData.coinmarket);
       }, (20000 * Math.floor((index + 1) / 2)) + 5000));
     });
   }
 
-  async updateTokenFeed(id, coinFeed) {
+  async updateTokenFeed(id, coinFeed, coinmarket) {
     // Parse feed for token and update in data
     const feed = await this.cryptoScan.getTokenFeed(id);
     console.log(`Update feed for: ${id}`);
@@ -108,19 +118,22 @@ class FeedBot {
     // Check equal feed
     if (coinPrevFeed &&
       ((coinPrevFeed.twitter && coinPrevFeed.twitter[0]) || (coinPrevFeed.reddit && coinPrevFeed.reddit[0])) &&
-      ((coinPrevFeed.twitter && coinPrevFeed.twitter[0]) || (coinPrevFeed.reddit && coinPrevFeed.reddit[0]))
+      ((feed.twitter && feed.twitter[0]) || (feed.reddit && feed.reddit[0]))
     ) {
+      console.log('check feed');
       // Check feed with prev result
       const twitterFeedEqual = this._checkFeedEqual(feed.twitter, coinPrevFeed.twitter);
       const redditFeedEqual = this._checkFeedEqual(feed.reddit, coinPrevFeed.reddit);
 
       if (!twitterFeedEqual.isEqual || !redditFeedEqual.isEqual) {
         // Push to discord ...
-        console.log(`${id}: feed changed`);
 
         // Print new feed
-        twitterFeedEqual.newFeed.map(this._notifyFeedItem);
-        redditFeedEqual.newFeed.map(this._notifyFeedItem);
+        this._sendToDiscord(`----- ${coinmarket.symbol} / ${id})  |  BTC ${coinmarket.percentFromPrevCheck.btc}%/ USD ${coinmarket.percentFromPrevCheck.usd}%----- `);
+        twitterFeedEqual.newFeed.map(this._notifyFeedItem.bind(this));
+        redditFeedEqual.newFeed.map(this._notifyFeedItem.bind(this));
+      } else {
+        console.log(`${id}: feed not changed`);
       }
     }
 
@@ -132,7 +145,6 @@ class FeedBot {
 
   _checkFeedEqual(feed, prevFeed) {
     // Check feed equal
-
     if (!feed) feed = [];
     if (!prevFeed) prevFeed = [];
 
@@ -158,17 +170,14 @@ class FeedBot {
 
   _notifyFeedItem(item) {
     // Print new feed
-    console.log('New items');
+    this._sendToDiscord(`${item.title}\n${formatDate(item.date)} / ${item.author}\n${item.url}`);
+  }
+
+  _sendToDiscord(content) {
     axios.post(this.config.discordWebhook, {
-      content: `${item.title}\n${formatDate(item.formatDate)} / ${item.author}\n${item.url}`,
+      content,
     }, {
       headers: { 'content-type': 'application/json' },
-    });
-
-    console.log({
-      title: item.title,
-      date: item.date,
-      url: item.url,
     });
   }
 }

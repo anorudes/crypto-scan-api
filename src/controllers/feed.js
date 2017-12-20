@@ -5,8 +5,8 @@ export async function updateFeedBotConfig(req, res) {
 
   // Only have reddit/twitter coins
   config.list = config.list.filter(coinData =>
-    (!coinData.twitter || !coinData.twitter[0]) &&
-    (!coinData.reddit || !coinData.reddit[0]),
+    (coinData.feed && coinData.feed.twitter && coinData.feed.twitter[0]) ||
+    (coinData.feed && coinData.feed.reddit && coinData.feed.reddit[0]),
   );
 
   const botConfig = await BotConfig.findOne({
