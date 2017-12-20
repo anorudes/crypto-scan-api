@@ -166,7 +166,7 @@ class FeedBot {
 
   _notifyFeedItem(item) {
     // Print new feed
-    this._sendToDiscord(`${item.title}\n${formatDate(item.date)} / ${item.author}\n${item.url}`);
+    this._sendToDiscord(`${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n${formatDate(item.date)} / ${item.author}\n<${item.url}>`);
   }
 
   _sendToDiscord(content) {
