@@ -16,7 +16,7 @@ class FeedBot {
     this.cryptoScan = new CryproScanCore(this.config);
 
     this.startParse();
-    setInterval(this.startParse, 3000000);
+    setInterval(this.startParse.bind(this), 3000000);
   }
 
   async startParse() {
@@ -52,7 +52,7 @@ class FeedBot {
         +percentUsdFromPrevCheck >= this.config.savedMinPercentUsdSaved &&
         +percentBtcFromPrevCheck >= 1
       ) {
-        console.log('Price changed for ' + tokenPrice.id);
+        console.log('Price + for ' + tokenPrice.id);
 
         const coinmarket = {
           ...tokenPrice,
@@ -62,17 +62,13 @@ class FeedBot {
 
         changedCoins.push({
           id: tokenPrice.id,
-          data: coinData,
+          feed: coinData.feed,
           coinmarket,
         });
 
         if (coinData) {
           // Update
-          coinData.coinmarket = {
-            ...tokenPrice,
-            percentBtcFromPrevCheck,
-            percentUsdFromPrevCheck,
-          };
+          coinData.coinmarket = coinmarket;
           await coinData.save();
         } else {
           // Create
@@ -101,7 +97,7 @@ class FeedBot {
     // Start auto parse feed for changedCoins
     changedCoins.map((coinData, index) => {
       this.timers.push(setTimeout(() => {
-        this.updateTokenFeed(coinData.id, coinData.data, coinData.coinmarket);
+        this.updateTokenFeed(coinData.id, coinData.feed, coinData.coinmarket);
       }, (20000 * Math.floor((index + 1) / 2)) + 5000));
     });
   }
@@ -111,8 +107,8 @@ class FeedBot {
     const feed = await this.cryptoScan.getTokenFeed(id);
     console.log(`Update feed for: ${id}`);
 
-    const coinPrevFeed = coinFeed && coinFeed.feed
-      ? coinFeed.feed
+    const coinPrevFeed = coinFeed
+      ? coinFeed
       : null;
 
     // Check equal feed
@@ -129,7 +125,7 @@ class FeedBot {
         // Push to discord ...
 
         // Print new feed
-        this._sendToDiscord(`----- ${coinmarket.symbol} / ${id})  |  BTC ${coinmarket.percentFromPrevCheck.btc}%/ USD ${coinmarket.percentFromPrevCheck.usd}%----- `);
+        this._sendToDiscord(`----- ${coinmarket.symbol} / ${id})  |  BTC ${coinmarket.percentBtcFromPrevCheck}%/ USD ${coinmarket.percentUsdFromPrevCheck}%----- `);
         twitterFeedEqual.newFeed.map(this._notifyFeedItem.bind(this));
         redditFeedEqual.newFeed.map(this._notifyFeedItem.bind(this));
       } else {
@@ -174,11 +170,11 @@ class FeedBot {
   }
 
   _sendToDiscord(content) {
-    axios.post(this.config.discordWebhook, {
-      content,
-    }, {
-      headers: { 'content-type': 'application/json' },
-    });
+    // axios.post(this.config.discordWebhook, {
+    //   content,
+    // }, {
+    //   headers: { 'content-type': 'application/json' },
+    // });
   }
 }
 
