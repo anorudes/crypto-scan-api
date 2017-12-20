@@ -34,7 +34,7 @@ class FeedBot {
 
       // Calc percent from last check
       const percentUsdFromPrevCheck = prevCoinmarket
-        ? calcPercentage(tokenPrice.price_usd, prevCoinmarket.price_usd - 1)
+        ? calcPercentage(tokenPrice.price_usd, prevCoinmarket.price_usd)
         : 0;
       const percentBtcFromPrevCheck = prevCoinmarket
         ? calcPercentage(tokenPrice.price_btc, prevCoinmarket.price_btc)
@@ -42,42 +42,39 @@ class FeedBot {
 
       // Save changed coins
       if (
-        +tokenPrice.price_usd > this.config.priceUsdDayAgo &&
         +percentUsdFromPrevCheck <= this.config.savedMaxPercentUsdSaved &&
         +percentUsdFromPrevCheck >= this.config.savedMinPercentUsdSaved &&
-        +percentBtcFromPrevCheck >= this.config.savedMinPercentBtcSaved
+        +percentBtcFromPrevCheck >= 1
       ) {
         console.log('Price changed for ' + tokenPrice.id);
         changedCoins.push({
           id: tokenPrice.id,
           data: coinData,
         });
-      }
 
-      if (coinData) {
-        // Update
-        console.log(`${tokenPrice.id}: update price`);
-        console.log(percentUsdFromPrevCheck);
-        coinData.coinmarket = {
-          ...tokenPrice,
-          percentBtcFromPrevCheck,
-          percentUsdFromPrevCheck,
-        };
-        await coinData.save();
-      } else {
-        // Create
-        console.log(`${tokenPrice.id}: create price`);
-        const newCoinData = new CoinFeed({
-          coinId: tokenPrice.id,
-          coinmarket: {
+        if (coinData) {
+          // Update
+          coinData.coinmarket = {
             ...tokenPrice,
             percentBtcFromPrevCheck,
             percentUsdFromPrevCheck,
-          },
-        });
+          };
+          await coinData.save();
+        } else {
+          // Create
+          const newCoinData = new CoinFeed({
+            coinId: tokenPrice.id,
+            coinmarket: {
+              ...tokenPrice,
+              percentBtcFromPrevCheck,
+              percentUsdFromPrevCheck,
+            },
+          });
 
-        await newCoinData.save();
+          await newCoinData.save();
+        }
       }
+
       return tokenPrice;
     });
 
@@ -102,6 +99,7 @@ class FeedBot {
   async updateTokenFeed(id, coinFeed) {
     // Parse feed for token and update in data
     const feed = await this.cryptoScan.getTokenFeed(id);
+    console.log(`Update feed for: ${id}`);
 
     const coinPrevFeed = coinFeed && coinFeed.feed
       ? coinFeed.feed
