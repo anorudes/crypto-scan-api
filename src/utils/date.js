@@ -1,6 +1,5 @@
+import moment from 'moment';
+
 export function formatDate(date) {
-  return new Date(date)
-    .toLocaleString()
-    .replace(',', '')
-    .replace(/\//g, '.');
+  return moment(date).format('DD.MM.YYYY HH:mm');
 }

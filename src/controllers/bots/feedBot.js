@@ -132,11 +132,11 @@ class FeedBot {
 
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
-          ...redditFeedEqual,
+          ...redditFeedEqual.newFeed,
         ].sort((a, b) => new Date(a.date) < new Date(b.date) ? 1 : -1);
 
         completeNewFeed.map(item => {
-          this.addToNotify(`${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n${formatDate(item.date)}\n<${item.url}>`);
+          this.addToNotifyQueue(`${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n${formatDate(item.date)}\n<${item.url}>`);
         });
       } else {
         console.log(`${id}: feed not changed`);
@@ -187,7 +187,7 @@ class FeedBot {
         headers: { 'content-type': 'application/json' },
       });
 
-      this.notifyList.shift();
+      this.notifyList = this.notifyList.slice(1);
     }
   }
 }
