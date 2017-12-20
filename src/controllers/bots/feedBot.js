@@ -125,7 +125,7 @@ class FeedBot {
         // Push to discord ...
 
         // Print new feed
-        this._sendToDiscord(`----- ${coinmarket.symbol} / ${id})  |  BTC ${coinmarket.percentBtcFromPrevCheck}%/ USD ${coinmarket.percentUsdFromPrevCheck}%----- `);
+        this._sendToDiscord(`----- ${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}% ----- `);
         twitterFeedEqual.newFeed.map(this._notifyFeedItem.bind(this));
         redditFeedEqual.newFeed.map(this._notifyFeedItem.bind(this));
       } else {
