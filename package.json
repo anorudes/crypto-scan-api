@@ -4,7 +4,7 @@
   "scripts": {
     "lint": "eslint src && eslint bin",
     "start": "nodemon --watch src bin/start.js",
-    "prod": "node bin/start.js",
+    "prod": "concurrently --kill-others \"node bin/start.js\"",
     "flow": "flow"
   },
   "repository": {
