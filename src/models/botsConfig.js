@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const botsSchema = new Schema({
   bot: String,
-  config: String,
+  config: Object,
   user: String,
 });
 
