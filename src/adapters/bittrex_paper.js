@@ -8,11 +8,9 @@
  */
 import bittrex from 'node.bittrex.api';
 import HistoryData from '../models/historyData';
-// import HistoryBalances from '../models/historyBalances';
+import HistoryBalances from '../models/historyBalances';
 // import jsonfile from 'jsonfile';
 
-const API_KEY_BITTREX = 'fcb485d9c39f413591bff349df9f2fee';
-const API_SECRET_BITTREX = '730c23f56b0741329d4f2e973c7af985';
 
 const BASE_URL_BITTREX = 'https://bittrex.com/api/v1.1';
 const BASE_URL_BITTREX_V2 = 'https://bittrex.com/Api/v2.0';
@@ -23,7 +21,11 @@ const preparedData = {};
 const walkingThroughData = {};
 
 // TODO -> get from cookies
-const user = 'motorin';
+const user = 'paper';
+const defaultBTCAmount = 0.5;
+const startCoinAmount = 500;
+
+const getCandlesExecution = {};
 
 // Set Keys And Pathes
 const init = (apiKey, apiSecret) => {
@@ -36,21 +38,6 @@ const init = (apiKey, apiSecret) => {
     baseUrl: BASE_URL_BITTREX,
     baseUrlv2: BASE_URL_BITTREX_V2,
   });
-};
-
-const prepareData = (market, tickInterval = 'oneMin') => {
-  return new Promise((resolve, reject) => {
-    getCandles(market, tickInterval).then(data => {
-      if (typeof preparedData[market] === 'undefined') {
-        preparedData[market] = {};
-        walkingThroughData[market] = {};
-      }
-      preparedData[market][tickInterval] = data;
-      walkingThroughData[market][tickInterval] = 0;
-      resolve(data);
-    });
-  });
-
 };
 
 // Async Request imitation
@@ -97,69 +84,146 @@ const getOpenOrders = (market) => {
 
 // Get Order History
 const getOrderHistory = (market) => {
-  const result = jsonfile.readFileSync(fileNames[market].orderHistory, { throws: false });
-  if (!result) {
-    let url = `${BASE_URL_BITTREX}/account/getorderhistory`;
-    if (typeof market === 'string') {
-      url += `?market=${market}`;
-    }
-    return customAsyncRequest(url, fileNames[market].orderHistory);
+  const HistoryByMarket = {
+    'BTC-RLC': {
+      OrderUuid: 'd0b3777e-36d2-47c3-8f27-0614bb81c96a',
+      Exchange: 'BTC-RLC',
+      TimeStamp: '2017-12-19T15:57:49.993',
+      OrderType: 'LIMIT_BUY',
+      Limit: 0.00005487,
+      Quantity: 168.55989486,
+      QuantityRemaining: 0,
+      Commission: 0.00002311,
+      Price: 0.006405276005,
+      PricePerUnit: 0.000038,
+      IsConditional: false,
+      Condition: 'NONE',
+      ConditionTarget: null,
+      ImmediateOrCancel: false,
+      Closed: '2017-12-19T15:57:50.117',
+    },
+    'BTC-RDD': {
+      OrderUuid: 'd0b3777e-36d2-47c3-8f27-0614bb81c96b',
+      Exchange: 'BTC-RDD',
+      TimeStamp: '2017-12-19T15:57:49.993',
+      OrderType: 'LIMIT_BUY',
+      Limit: 0.00005487,
+      Quantity: 50000,
+      QuantityRemaining: 0,
+      Commission: 0.00002311,
+      Price: 0.0045,
+      PricePerUnit: 9e-8,
+      IsConditional: false,
+      Condition: 'NONE',
+      ConditionTarget: null,
+      ImmediateOrCancel: false,
+      Closed: '2017-12-19T15:57:50.117',
+    },
+    'BTC-STRAT': {
+      OrderUuid: 'd0b3777e-36d2-47c3-8f27-0614bb81c96c',
+      Exchange: 'BTC-STRAT',
+      TimeStamp: '2017-12-19T15:57:49.993',
+      OrderType: 'LIMIT_BUY',
+      Limit: 0.00005487,
+      Quantity: 500,
+      QuantityRemaining: 0,
+      Commission: 0.0006088,
+      Price: 0.24352,
+      PricePerUnit: 0.00048704,
+      IsConditional: false,
+      Condition: 'NONE',
+      ConditionTarget: null,
+      ImmediateOrCancel: false,
+      Closed: '2017-12-19T15:57:50.117',
+    },
+    'BTC-XVG': {
+      OrderUuid: 'd0b3777e-36d2-47c3-8f27-0614bb81c96d',
+      Exchange: 'BTC-XVG',
+      TimeStamp: '2017-12-19T15:57:49.993',
+      OrderType: 'LIMIT_BUY',
+      Limit: 0.00005487,
+      Quantity: 500,
+      QuantityRemaining: 0,
+      Commission: 0.000001225,
+      Price: 0.00049,
+      PricePerUnit: 9.8e-7,
+      IsConditional: false,
+      Condition: 'NONE',
+      ConditionTarget: null,
+      ImmediateOrCancel: false,
+      Closed: '2017-12-19T15:57:50.117',
+    } };
+  if (!HistoryByMarket[market]) {
+    return promiseWrap(`No orders found for ${market}`);
   }
-  return promiseWrap(result);
+  return promiseWrap([HistoryByMarket[market]]);
 };
 
 
 // Get Balance
-const getBalances = () => {
-  const result = jsonfile.readFileSync(fileNames.balances, { throws: false });
-  if (!result) {
-    return new Promise((resolve, reject) => {
-      bittrex.getbalances((data, err) => {
-        if (err) {
-          console.error(err);
-          reject();
-          return false;
-        }
-        const myCurrentBalance = data.result.filter(coin => {
-          return coin.Balance > 0;
-        });
-        resolve(myCurrentBalance);
-      });
+const getBalances = (market) => {
+  const coinName = market.substr(4);
+
+  const balancesDefault = [{
+    Currency: 'BTC',
+    Balance: defaultBTCAmount,
+    Available: defaultBTCAmount,
+    Pending: 0,
+    CryptoAddress: null,
+  }];
+
+  if (market) {
+    balancesDefault.push({
+      Currency: coinName,
+      Balance: startCoinAmount,
+      Available: 0,
+      Pending: 0,
+      CryptoAddress: null,
     });
   }
-  return promiseWrap(result);
+
+  return promiseWrap(balancesDefault);
 };
 
 
-const getCandles = (market, tickInterval = 'oneMin') => {
-  HistoryData.findOne({ market, tickInterval }, (err, result) => {
-    if (result) {
+const getCandles = async (market, tickInterval = 'min') => {
+  if (!getCandlesExecution[market]) {
+    getCandlesExecution[market] = 'started';
+  }
+  return new Promise((resolve, reject) => {
+    const candles = HistoryData.findOne({ market, tickInterval });
+    if (candles) {
       console.log(`Found candles for ${market}/${tickInterval}`);
-      return promiseWrap(result);
+      getCandlesExecution[market] = 'finished';
+      resolve(candles);
+      return;
     }
-
-    let url = `${BASE_URL_BITTREX_V2}/pub/market/GetTicks`;
-    if (typeof market !== 'string') {
-      console.log('getCandles needs paramater "market"');
-    }
-    url += `?marketName=${market}`;
-    url += `&tickInterval=${tickInterval}`;
-
-    const historyData = new HistoryData({
-      market,
-      tickInterval,
-      data: [],
-    });
-    return customAsyncRequest(url, historyData);
+    reject(`No data found for ${market}/${tickInterval}`);
   });
-
 };
 
-const getLatestCandle = (market, tickInterval = 'oneMin') => {
-  const result = preparedData[market][tickInterval][walkingThroughData[market][tickInterval]];
-  walkingThroughData[market][tickInterval]++;
 
-  return customAsyncRequest(result);
+const getLatestCandle = async (market, tickInterval = 'min') => {
+  return new Promise(async (resolve, reject) => {
+    if (!preparedData[market] || !preparedData[market][tickInterval]) {
+      let allCandles = {};
+      try {
+        allCandles = await getCandles(market, tickInterval);
+      } catch (e) {
+        reject({ code: 2, message: e });
+        return false;
+      }
+      if (typeof preparedData[market] === 'undefined') {
+        preparedData[market] = {};
+        walkingThroughData[market] = {};
+      }
+      preparedData[market][tickInterval] = allCandles.data;
+      walkingThroughData[market][tickInterval] = 1000;
+    }
+    const result = preparedData[market][tickInterval][walkingThroughData[market][tickInterval]];
+    walkingThroughData[market][tickInterval]++;
+    return resolve(result);
+  });
 };
 
 /*
@@ -194,7 +258,6 @@ export default {
   getBalances,
   getCandles,
   getLatestCandle,
-  prepareData,
   sockets: {
     start: wsStart,
     subscribeOnMarketsUpdate: wsSubsribeOnMarketsUpdate,

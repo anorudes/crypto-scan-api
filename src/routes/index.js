@@ -2,6 +2,7 @@ import Express from 'express';
 import wrap from 'express-async-wrap';
 
 import botStopLossUp from '../controllers/bots/stop-loss-up';
+import botStopLossUpTest from '../controllers/bots/stop-loss-up/test';
 import botGrabData from '../controllers/bots/grab-data';
 
 import profitCheck from '../controllers/profit_check';
@@ -26,6 +27,11 @@ export default [
   Router.get('/api/bot/stop-loss-up/:exchange/:marketOrTicknterval', wrap(botStopLossUp)),
   Router.get('/api/bot/stop-loss-up/:exchange/:market/:tickInterval/', wrap(botStopLossUp)),
   Router.get('/api/bot/stop-loss-up/:exchange/:market/:tickInterval/:isPaper', wrap(botStopLossUp)),
+
+  // TODO: remove it
+  Router.get('/api/bot/stop-loss-up/test', wrap(botStopLossUpTest)),
+  Router.get('/api/bot/stop-loss-up/*', wrap(botStopLossUp)),
+
 
   Router.get('/api/bot/grab/:exchange/:market/:tickInterval', wrap(botGrabData)),
   Router.get('/api/bot/grab/*', wrap(botGrabData)),

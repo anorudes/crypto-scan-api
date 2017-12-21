@@ -90,7 +90,7 @@ const getBalances = () => {
 };
 
 
-const getCandles = (market, tickInterval = 'oneMin') => {
+const getCandles = (market, tickInterval = 'min') => {
   let url = `${BASE_URL_BITTREX_V2}/pub/market/GetTicks`;
   if (typeof market !== 'string') {
     console.log('getCandles needs paramater "market"');
@@ -100,7 +100,7 @@ const getCandles = (market, tickInterval = 'oneMin') => {
   return customAsyncRequest(url);
 };
 
-const getLatestCandle = (market, tickInterval = 'oneMin') => {
+const getLatestCandle = (market, tickInterval = 'min') => {
   let url = `${BASE_URL_BITTREX_V2}/pub/market/GetLatestTick`;
   if (typeof market !== 'string') {
     console.log('getLatestCandle needs paramater "market"');

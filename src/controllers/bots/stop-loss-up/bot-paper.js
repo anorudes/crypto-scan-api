@@ -1,7 +1,7 @@
 // import bittrex from '../../adapters/bittrex';
 // import bittrex_history from '../../adapters/bittrex_history';
-import RM from '../requests_manager';
 import OSNotifier from 'node-notifier';
+import RM from '../../../utils/requests_manager';
 
 // const exchange = bittrex;
 // const exchange = bittrex_history;

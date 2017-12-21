@@ -1,7 +1,7 @@
 import Express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
-import bluebird from 'bluebird';
+// import bluebird from 'bluebird';
 import CONFIG from '../config/';
 import routes from './routes/';
 import TwitterParser from './modules/twitterParser';
@@ -12,15 +12,21 @@ const app = Express();
 global.rootPath = __dirname;
 
 // DB
-mongoose.Promise = bluebird;
+mongoose.Promise = Promise;
 mongoose.connect(CONFIG.db.url, {
-  promiseLibrary: bluebird,
+  promiseLibrary: Promise,
   useMongoClient: true,
   socketTimeoutMS: 0,
   keepAlive: true,
   reconnectTries: 30,
 }).then(dbData => {
   console.log(`DB '${dbData.name}' connected! Nice!`);
+});
+
+// Better logging for Unhandled Rejection events
+process.on('unhandledRejection', (reason, p) => {
+  console.log(`Possibly Unhandled Rejection at: Promise ${p}, reason: ${reason}`);
+  // application specific logging here
 });
 
 const twitterParser = new TwitterParser({

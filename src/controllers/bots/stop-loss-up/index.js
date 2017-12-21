@@ -1,10 +1,11 @@
 import notify from '../../../utils/notify';
-import BotReal from './bot-real';
+import Bot from './bot';
+// import BotReal from './bot-real';
 // import BotPaper from './bot-paper';
 
 const exchanges = {
-  bittrex: require('../../../adapters/bittrex'),
-  'bittrex-paper': require('../../../adapters/bittrex_paper'),
+  bittrex: require('../../../adapters/bittrex').default,
+  'bittrex-paper': require('../../../adapters/bittrex_paper').default,
   // poloniex: require('../../../adapters/poloniex'),
 };
 
@@ -17,6 +18,7 @@ export default async function (req, res) {
   let { market, tickInterval } = req.params;
 
   const isPaperMode = isPaper && (isPaper === 'test' || isPaper === 'paper');
+  const adapterName = isPaperMode ? `${exchange}-paper` : exchange;
 
   const printExamplesAndFinish = () => {
     notify(res, 'Examples:');
@@ -30,14 +32,14 @@ export default async function (req, res) {
   };
 
   // SCRIPT BODY
-  if (!exchange || !exchanges[exchange]) {
+  if (!exchange || !exchanges[adapterName]) {
     notify(res, 'ERROR. What exactly "exchange" do you want to use? (/bot/stop-loss-up/exchange/market/tickInterval)?');
-    notify(res, 'Possible exchanges: bittrex, bittrex-paper, ...');
+    notify(res, 'Possible exchanges: bittrex, ...');
     return printExamplesAndFinish(res);
   }
 
-  const exchangeAdapter = exchanges[exchange];
-  await exchangeAdapter.init(); // TODO: add API KEY/ SECRET from user data
+  const exchangeAdapter = exchanges[adapterName];
+  // await exchangeAdapter.init(); // TODO: add API KEY/ SECRET from user data
 
   if (marketOrTicknterval && exchangeAdapter.tickIntervals[marketOrTicknterval] ) {
     tickInterval = marketOrTicknterval;
@@ -48,19 +50,23 @@ export default async function (req, res) {
   }
 
   // const bot = isPaperMode ? new BotPaper(exchangeAdapter, market, tickInterval) : new BotReal(exchangeAdapter, market, tickInterval);
-  // const bot = new BotReal(exchangeAdapter, market, tickInterval);
+  const bot = new Bot(exchangeAdapter, market, tickInterval, isPaperMode);
 
-  // // subscribe on events
-  // bot.eventCenter.on('message', (text) => {
-  //   notify(res, text);
-  // });
+  // subscribe on events
+  bot.on('log', (text) => {
+    notify(res, text);
+  });
 
-  // bot.eventCenter.on('stop', (text) => {
-  //   notify(res, text);
-  //   notify(res, 'Bot stopped. Thx to all, bye!');
-  //   res.status(200).end();
-  //   return false;
-  // });
+  bot.on('profit', (text) => {
+    notify(res, text);
+  });
 
-  // bot.start();
+  bot.on('stop', (text) => {
+    notify(res, text);
+    notify(res, 'Bot stopped. Thx to all, bye!');
+    res.status(200).end();
+    return false;
+  });
+
+  bot.start();
 };
