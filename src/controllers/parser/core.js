@@ -66,7 +66,7 @@ class CryptoScanCore extends CryptoScanParser {
 
   _sortFeedByDate(feed) {
     return feed
-      .sort((a, b) => new Date(a.date) > new Date(b.date)
+      .sort((a, b) => new Date(a.date) < new Date(b.date)
         ? 1
         : -1
       );
