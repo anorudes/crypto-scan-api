@@ -82,8 +82,6 @@ class FeedBot {
 
         await newCoinData.save();
       }
-
-      return tokenPrice;
     });
 
 
@@ -127,7 +125,7 @@ class FeedBot {
         // Push to discord ...
 
         // Print new feed
-        this.addToNotifyQueue(`----- ${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}% ----- `);
+        this.addToNotifyQueue(`**${coinmarket.symbol}** / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%`);
 
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
@@ -135,7 +133,7 @@ class FeedBot {
         ].sort((a, b) => new Date(a.date) < new Date(b.date) ? 1 : -1);
 
         completeNewFeed.map(item => {
-          this.addToNotifyQueue(`${formatDate(item.date)} | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n<${item.url}>\n---------------------------------------------`);
+          this.addToNotifyQueue(`${formatDate(item.date)} | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n<${item.url}>\n--------------------------------------------------------------`);
         });
       } else {
         console.log(`${id}: feed not changed`);
