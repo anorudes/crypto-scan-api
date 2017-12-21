@@ -61,7 +61,7 @@ class FeedBot {
       if (
         // +percentUsdFromPrevCheck <= this.config.savedMaxPercentUsdSaved &&
         +percentUsdFromPrevCheck >= 3 &&
-        +percentBtcFromPrevCheck >= 1
+        +percentBtcFromPrevCheck >= 3
       ) {
         console.log('Price + for ' + tokenPrice.id);
         changedCoins.push({
@@ -131,7 +131,7 @@ class FeedBot {
 
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
-          ...redditFeedEqual.newFeed,
+          ...redditFeedEqual.newFeed.slice(0, 3),
         ];
 
         const now = Date.now();
