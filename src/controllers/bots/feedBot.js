@@ -127,19 +127,21 @@ class FeedBot {
         // Push to discord ...
 
         // Print new feed
-        this.addToNotifyQueue(`**${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%**`);
 
+        const now = Date.now();
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
           ...redditFeedEqual.newFeed.slice(0, 3),
-        ];
+        ].filter(item => (now - new Date(item.date).getTime() <= MS_IN_DAY));
 
-        const now = Date.now();
-        completeNewFeed.map(item => {
-          if (now - new Date(item.date).getTime() <= MS_IN_DAY) {
+        if (completeNewFeed.length) {
+          this.addToNotifyQueue(`**${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%**`);
+
+          completeNewFeed.map(item => {
             this.addToNotifyQueue(`${formatDate(item.date)} | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n<${item.url}>\n--------------------------------------------------------------`);
-          }
-        });
+          });
+        }
+
       } else {
         console.log(`${id}: feed not changed`);
       }
