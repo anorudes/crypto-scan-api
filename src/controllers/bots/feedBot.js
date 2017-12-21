@@ -125,7 +125,7 @@ class FeedBot {
         // Push to discord ...
 
         // Print new feed
-        this.addToNotifyQueue(`**${coinmarket.symbol}** / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%`);
+        this.addToNotifyQueue(`**${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%**`);
 
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
