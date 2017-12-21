@@ -5,6 +5,8 @@ import CoinFeed from '../../models/coinFeed';
 import { calcPercentage } from '../../utils/percentage';
 import { formatDate } from '../../utils/date';
 
+const MS_IN_DAY = 86400 * 1000;
+
 class FeedBot {
   async start() {
     const botConfig = await BotConfig.findOne({
@@ -130,10 +132,13 @@ class FeedBot {
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
           ...redditFeedEqual.newFeed,
-        ].sort((a, b) => new Date(a.date) < new Date(b.date) ? 1 : -1);
+        ];
 
+        const now = Date.now();
         completeNewFeed.map(item => {
-          this.addToNotifyQueue(`${formatDate(item.date)} | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n<${item.url}>\n--------------------------------------------------------------`);
+          if (now - item.date >= MS_IN_DAY * 2) {
+            this.addToNotifyQueue(`${formatDate(item.date)} | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n<${item.url}>\n--------------------------------------------------------------`);
+          }
         });
       } else {
         console.log(`${id}: feed not changed`);
