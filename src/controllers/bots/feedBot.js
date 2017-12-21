@@ -136,7 +136,7 @@ class FeedBot {
 
         const now = Date.now();
         completeNewFeed.map(item => {
-          if (now - new Date(item.date).getTime() <= MS_IN_DAY * 2) {
+          if (now - new Date(item.date).getTime() <= MS_IN_DAY) {
             this.addToNotifyQueue(`${formatDate(item.date)} | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n<${item.url}>\n--------------------------------------------------------------`);
           }
         });
