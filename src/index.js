@@ -19,6 +19,8 @@ mongoose.connect(CONFIG.db.url, {
   socketTimeoutMS: 0,
   keepAlive: true,
   reconnectTries: 30,
+  server: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } },
+  replset: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } },
 }).then(dbData => {
   console.log(`DB '${dbData.name}' connected! Nice!`);
 });
