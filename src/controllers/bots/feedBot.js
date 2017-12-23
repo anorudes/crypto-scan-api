@@ -100,7 +100,7 @@ class FeedBot {
     changedCoins.map((coinData, index) => {
       this.timers.push(setTimeout(() => {
         this.updateTokenFeed(coinData.id, coinData.feed, coinData.coinmarket);
-      }, (20000 * Math.floor((index + 1) / 2)) + 5000));
+      }, (10000 * Math.floor((index + 1) / 2)) + 5000));
     });
   }
 
