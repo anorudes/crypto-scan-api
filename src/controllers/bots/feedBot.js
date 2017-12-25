@@ -134,7 +134,7 @@ class FeedBot {
         ].filter(item => (now - new Date(item.date).getTime() <= MS_IN_DAY));
 
         if (completeNewFeed.length) {
-          this.addToNotifyQueue(`**${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%**`);
+          this.addToNotifyQueue(`**${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%**\n--------------------------------------------------------------`);
 
           completeNewFeed.map(item => {
             this.addToNotifyQueue(`[${formatDate(item.date)}](<${item.url}>) | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n--------------------------------------------------------------`);
