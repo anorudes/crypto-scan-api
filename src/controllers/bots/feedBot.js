@@ -59,8 +59,7 @@ class FeedBot {
 
       // Save changed coins
       if (
-        // +percentUsdFromPrevCheck <= this.config.savedMaxPercentUsdSaved &&
-        +percentUsdFromPrevCheck >= 3 &&
+        +percentUsdFromPrevCheck >= 2 &&
         +percentBtcFromPrevCheck >= 2
       ) {
         console.log('Price + for ' + tokenPrice.id);
