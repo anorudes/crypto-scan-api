@@ -137,7 +137,7 @@ class FeedBot {
           this.addToNotifyQueue(`**${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%**`);
 
           completeNewFeed.map(item => {
-            this.addToNotifyQueue(`${formatDate(item.date)} | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n<${item.url}>\n--------------------------------------------------------------`);
+            this.addToNotifyQueue(`${formatDate(item.date)} | <[${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}](${item.url})>\n--------------------------------------------------------------`);
           });
         }
 
