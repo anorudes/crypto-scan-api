@@ -137,7 +137,7 @@ class FeedBot {
           let message = `------------------------------------------------------------------------\n**${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%**\n------------------------------------------------------------------------\n`;
 
           completeNewFeed.map(item => {
-            message += `${item.url.indexOf('twitter') !== -1 ? '<:twitter:393802607363358720> ' : '<:reddit:393802829849952260> '}[${formatDate(item.date)}](<${item.url}>) | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n`;
+            message += `${item.url.indexOf('twitter') !== -1 ? '<:twitter:393802607363358720> ' : '<:reddit:393802829849952260> '}[${formatDate(item.date)}](<${item.url}>) ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n`;
           });
 
           this.addToNotifyQueue(message);
