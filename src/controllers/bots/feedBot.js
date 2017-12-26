@@ -134,11 +134,13 @@ class FeedBot {
         ].filter(item => (now - new Date(item.date).getTime() <= MS_IN_DAY));
 
         if (completeNewFeed.length) {
-          this.addToNotifyQueue(`------------------------------------------------------------------------\n**${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%**\n------------------------------------------------------------------------`);
+          let message = `------------------------------------------------------------------------\n**${coinmarket.symbol} / ${id}  |  btc ${coinmarket.percentBtcFromPrevCheck}% / usd ${coinmarket.percentUsdFromPrevCheck}%**\n------------------------------------------------------------------------\n`;
 
           completeNewFeed.map(item => {
-            this.addToNotifyQueue(`[${formatDate(item.date)}](<${item.url}>)${item.url.indexOf('twitter.com') !== -1 ? ' t' : ''} | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}`);
+            message += `[${formatDate(item.date)}](<${item.url}>)${item.url.indexOf('twitter') !== -1 ? ' t' : ''} | ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n`;
           });
+
+          this.addToNotifyQueue(message);
         }
 
       } else {
