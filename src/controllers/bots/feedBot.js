@@ -5,8 +5,6 @@ import CoinFeed from '../../models/coinFeed';
 import { calcPercentage } from '../../utils/percentage';
 import { formatDate } from '../../utils/date';
 
-const MS_IN_DAY = 86400 * 1000;
-
 class FeedBot {
   async start() {
     const botConfig = await BotConfig.findOne({
@@ -131,7 +129,7 @@ class FeedBot {
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
           ...redditFeedEqual.newFeed.slice(0, 3),
-        ].filter(item => (now - new Date(item.date).getTime() <= MS_IN_DAY));
+        ].filter(item => (now - new Date(item.date).getTime() <= 3600 * 1000));
 
         if (completeNewFeed.length) {
           let message = `------------------------------------------------------------------------\n**${coinmarket.symbol}, ${id}** — btc ${coinmarket.percentBtcFromPrevCheck}% | usd ${coinmarket.percentUsdFromPrevCheck}%\n------------------------------------------------------------------------\n`;
