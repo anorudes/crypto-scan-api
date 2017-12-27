@@ -16,7 +16,7 @@ class FeedBot {
     this.cryptoScan = new CryproScanCore(this.config);
     this.notifyInterval = setInterval(this.notifyFromQueue.bind(this), 1000);
     this.notifyList = [];
-    setInterval(this.startParse.bind(this), 2700000);
+    setInterval(this.startParse.bind(this), 3000000);
 
     this.startParse();
   }
