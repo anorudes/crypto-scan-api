@@ -16,7 +16,7 @@ class FeedBot {
     this.cryptoScan = new CryproScanCore(this.config);
     this.notifyInterval = setInterval(this.notifyFromQueue.bind(this), 1000);
     this.notifyList = [];
-    setInterval(this.startParse.bind(this), 1800000);
+    setInterval(this.startParse.bind(this), 2700000);
 
     this.startParse();
   }
@@ -129,7 +129,7 @@ class FeedBot {
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
           ...redditFeedEqual.newFeed.slice(0, 3),
-        ].filter(item => (now - new Date(item.date).getTime() <= 3600 * 1000));
+        ].filter(item => (now - new Date(item.date).getTime() <= 2 * 3600 * 1000));
 
         if (completeNewFeed.length) {
           let message = `------------------------------------------------------------------------\n**${coinmarket.symbol}, ${id}** — btc ${coinmarket.percentBtcFromPrevCheck}% | usd ${coinmarket.percentUsdFromPrevCheck}%\n------------------------------------------------------------------------\n`;
