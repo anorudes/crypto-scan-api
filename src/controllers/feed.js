@@ -15,6 +15,7 @@ export async function updateFeedBotConfig(req, res) {
   });
 
   if (botConfig) {
+    console.log('Feed bot config updated');
     // Update
     botConfig.set({
       config,
