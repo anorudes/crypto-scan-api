@@ -128,8 +128,8 @@ class FeedBot {
         const now = Date.now();
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
-          ...redditFeedEqual.newFeed.slice(0, 3),
-        ].filter(item => (now - new Date(item.date).getTime() <= 2 * 3600 * 1000));
+          ...redditFeedEqual.newFeed.slice(0, 2),
+        ].filter(item => (now - new Date(item.date).getTime() <= 4 * 3600 * 1000));
 
         if (completeNewFeed.length) {
           let message = `------------------------------------------------------------------------\n**${coinmarket.symbol}, ${id}** — btc ${coinmarket.percentBtcFromPrevCheck}% | usd ${coinmarket.percentUsdFromPrevCheck}%\n------------------------------------------------------------------------\n`;
