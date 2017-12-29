@@ -4,6 +4,7 @@ import BotConfig from '../../models/botsConfig';
 import CoinFeed from '../../models/coinFeed';
 import { calcPercentage } from '../../utils/percentage';
 import { formatDate } from '../../utils/date';
+import { TWITTER_CONFIG } from '../../../config';
 
 class FeedBot {
   async start() {
@@ -13,7 +14,10 @@ class FeedBot {
     });
 
     this.config = botConfig.config;
-    this.cryptoScan = new CryproScanCore(this.config);
+    this.cryptoScan = new CryproScanCore({
+      ...this.config,
+      twitter: TWITTER_CONFIG,
+    });
     this.notifyInterval = setInterval(this.notifyFromQueue.bind(this), 1000);
     this.notifyList = [];
     setInterval(this.startParse.bind(this), 3000000);

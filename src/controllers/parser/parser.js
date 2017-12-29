@@ -1,5 +1,6 @@
 // @flow
 import rssParser from 'rss-parser';
+import Twitter from 'twitter';
 import removeHtmlTags from './utils/removeHtmlTags';
 
 class CryptoScanParser {
@@ -7,6 +8,31 @@ class CryptoScanParser {
 
   constructor(config: Object) {
     this.config = config;
+
+    this.twitterClient = new Twitter(config.twitter);
+  }
+
+  async parseTwitterFeed(
+    slug: string,
+  ): Promise<any> {
+    // Parse twitter feed
+    return new Promise((resolve: Function) => {
+      const tweets = [];
+      this.twitterClient.get(
+        'statuses/user_timeline',
+        { screen_name: slug, exclude_replies: true, include_entities: false },
+        (err, data) => {
+          data && data.map(tweet => {
+            tweets.push({
+              title: removeHtmlTags(tweet.text),
+              url: `https://twitter.com/statuses/${tweet.id_str}`,
+              date: new Date(tweet.created_at),
+            });
+          });
+
+          resolve(tweets);
+        });
+    });
   }
 
   async parseRSSFeed(

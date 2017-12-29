@@ -27,7 +27,9 @@ class CryptoScanCore extends CryptoScanParser {
     if (tokenData && tokenData.feed) {
       const feed: Object = tokenData.feed || {};
       const redditFeed = await this.parseRSSFeed(feed.reddit, REDDIT_RSS_URL)
-      const twitterFeed = await this.parseRSSFeed(feed.twitter, TWITTER_RSS_URL);
+      const twitterFeed = feed.twitter && feed.twitter[0]
+        ? await this.parseTwitterFeed(feed.twitter[0].slug)
+        : null;
 
       return {
         twitter: this._sortFeedByDate(twitterFeed),
