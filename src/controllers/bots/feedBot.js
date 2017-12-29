@@ -128,7 +128,7 @@ class FeedBot {
         const now = Date.now();
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
-          ...redditFeedEqual.newFeed.slice(0, 2),
+          ...redditFeedEqual.newFeed.slice(0, 3),
         ].filter(item => (now - new Date(item.date).getTime() <= 4 * 3600 * 1000));
 
         if (completeNewFeed.length) {
