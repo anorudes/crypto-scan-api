@@ -17,7 +17,7 @@ class FeedBot {
     this.notifyInterval = setInterval(this.notifyFromQueue.bind(this), 1000);
     this.notifyList = [];
     setInterval(this.startParse.bind(this), 3000000);
-
+    
     this.startParse();
   }
 
@@ -57,8 +57,8 @@ class FeedBot {
 
       // Save changed coins
       if (
-        +percentUsdFromPrevCheck >= 2 &&
-        +percentBtcFromPrevCheck >= 2
+        +percentUsdFromPrevCheck >= 1.75 &&
+        +percentBtcFromPrevCheck >= 1.75
       ) {
         console.log('Price + for ' + tokenPrice.id);
         changedCoins.push({
