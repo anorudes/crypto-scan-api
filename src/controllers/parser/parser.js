@@ -20,7 +20,7 @@ class CryptoScanParser {
       const tweets = [];
       this.twitterClient.get(
         'statuses/user_timeline',
-        { screen_name: slug, exclude_replies: true, include_entities: false },
+        { screen_name: slug, count: 200, exclude_replies: true, include_entities: false },
         (err, data) => {
           data && data.map(tweet => {
             tweets.push({
