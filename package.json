@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "scripts": {
     "lint": "eslint src && eslint bin",
-    "start": "nodemon --watch src bin/start.js"
+    "start": "nodemon --watch src bin/start.js",
+    "prod": "node bin/start.js",
+    "flow": "flow"
   },
   "repository": {
     "type": "git",
@@ -12,11 +14,6 @@
   "homepage": "",
   "bugs": "https://github.com/genipigs/mulbabar-api/issues",
   "license": "MIT",
-  "authors": [
-    "Andrey Keske (https://github.com/keske)",
-    "Max Anoru (https://github.com/anorudes)",
-    "Pavel Motorin (https://github.com/Motorin)"
-  ],
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "6.24.1",
@@ -50,6 +47,7 @@
     "history": "2.1.1",
     "mailchimp-v3": "1.0.5",
     "merge": "1.2.0",
+    "moment": "^2.20.1",
     "nodemailer": "4.0.1",
     "ramda": "0.23.0",
     "twit": "^2.2.9",
@@ -73,7 +71,9 @@
     "passport": "^0.4.0",
     "redis": "2.8.0",
     "sequelize-cli": "2.7.0",
-    "twitter-node-client": "0.0.6"
+    "twitter-node-client": "0.0.6",
+    "axios": "0.17.1",
+    "rss-parser": "2.10.8"
   },
   "jest": {
     "setupFiles": [

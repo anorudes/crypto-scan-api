@@ -1,42 +1,32 @@
 import Express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
-// import bluebird from 'bluebird';
+import bluebird from 'bluebird';
 import CONFIG from '../config/';
 import routes from './routes/';
-import TwitterParser from './modules/twitterParser';
-import Core from './modules/core';
+import axios from 'axios';
+import FeedBot from './controllers/bots/feedBot';
 
 const app = Express();
 
 global.rootPath = __dirname;
 
 // DB
-mongoose.Promise = Promise;
+mongoose.Promise = bluebird;
 mongoose.connect(CONFIG.db.url, {
-  promiseLibrary: Promise,
+  promiseLibrary: bluebird,
   useMongoClient: true,
   socketTimeoutMS: 0,
   keepAlive: true,
   reconnectTries: 30,
+  server: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } },
+  replset: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } },
 }).then(dbData => {
   console.log(`DB '${dbData.name}' connected! Nice!`);
 });
 
-// Better logging for Unhandled Rejection events
-process.on('unhandledRejection', (reason, p) => {
-  console.log(`Possibly Unhandled Rejection at: Promise ${p}, reason: ${reason}`);
-  // application specific logging here
-});
-
-const twitterParser = new TwitterParser({
-  consumer_key: 'CA1M166WKQ7gkiVYrhqByKLTP',
-  consumer_secret: 'XFAf6NHsyMBRT0HhVGgDB90iJIEnmd5DUUvVCf75wlBtCMOCZ6',
-  access_token_key: '850801796-T3Dig8y15kRr3DrRQP1qgRwjhcr1NpWabtuVyxhX',
-  access_token_secret: 'kNgrGpIIOhW3NTy1lTj1Z7vEJlLtqGYyKq2n5hl4GJNI8',
-});
-// const core = new Core({ twitterParser });
-// core.init();
+const feedBot = new FeedBot();
+feedBot.start();
 
 app.set('trust proxy', 1);
 app.use(bodyParser.json({
