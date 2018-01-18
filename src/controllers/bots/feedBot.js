@@ -2,9 +2,45 @@ import axios from 'axios';
 import CryproScanCore from '../../controllers/parser';
 import BotConfig from '../../models/botsConfig';
 import CoinFeed from '../../models/coinFeed';
+import ExchangeFeed from '../../models/exchangeFeed';
 import { calcPercentage } from '../../utils/percentage';
 import { formatDate } from '../../utils/date';
 import { TWITTER_CONFIG } from '../../../config';
+
+const EXCHANGES_LIST = [{
+  slug: 'kucoincom',
+  name: 'Kucoin',
+}, {
+  slug: 'poloniex',
+  name: 'Poloniex',
+}, {
+  slug: 'bittrexexchange',
+  name: 'Bittrex',
+}, {
+  slug: 'okex_',
+  name: 'Okex',
+}, {
+  slug: 'hitbtc',
+  name: 'Hitbtc',
+}, {
+  slug: 'bitfinex',
+  name: 'Bitfinex',
+}, {
+  slug: 'bitstamp',
+  name: 'Bitstamp',
+}, {
+  slug: 'gdax',
+  name: 'Gdax',
+}, {
+  slug: 'krakenfx',
+  name: 'Kraken',
+}, {
+  slug: 'poloniex',
+  name: 'Poloniex',
+}, {
+  slug: 'cryptopia_nz',
+  name: 'Cryptopia',
+}];
 
 class FeedBot {
   async start() {
@@ -18,11 +54,15 @@ class FeedBot {
       ...this.config,
       twitter: TWITTER_CONFIG,
     });
+
     this.notifyInterval = setInterval(this.notifyFromQueue.bind(this), 1000);
     this.notifyList = [];
-    setInterval(this.startParse.bind(this), 3000000);
+
+    setInterval(this.startParse.bind(this), 3600000);
+    setInterval(this.getExchangeFeed.bind(this), 600000);
 
     this.startParse();
+    this.getExchangeFeed();
   }
 
   async startParse() {
@@ -61,7 +101,7 @@ class FeedBot {
 
       // Save changed coins
       if (
-        +percentUsdFromPrevCheck >= 1.75 &&
+        +percentUsdFromPrevCheck >= 2 &&
         +percentBtcFromPrevCheck >= 1.75
       ) {
         console.log('Price + for ' + tokenPrice.id);
@@ -101,7 +141,51 @@ class FeedBot {
     changedCoins.map((coinData, index) => {
       this.timers.push(setTimeout(() => {
         this.updateTokenFeed(coinData.id, coinData.feed, coinData.coinmarket);
-      }, (10000 * Math.floor((index + 1) / 2)) + 5000));
+      }, 4000 * Math.floor((index + 1) / 2)));
+    });
+  }
+
+  async getExchangeFeed() {
+    EXCHANGES_LIST.map((data, index) => {
+      const { slug, name } = data;
+
+      setTimeout(async () => {
+        console.log(`Update exchange feed: ${name}`);
+        const feed = await this.cryptoScan.getTwitterFeed(slug);
+
+        const exchange = await ExchangeFeed.findOne({ slug });
+        const twitterFeedEqual = this.checkFeedEqual(feed, (exchange || {}).feed);
+
+        if (!twitterFeedEqual.isEqual) {
+          // Push to discord ...
+
+          // Print new feed
+
+          const now = Date.now();
+          const completeNewFeed = twitterFeedEqual.newFeed.filter(item => item && (now - new Date(item.date).getTime() <= 24 * 3600 * 1000));
+
+          if (completeNewFeed.length) {
+            let message = `------------------------------------------------------------------------\n**▶  ${name}**\n------------------------------------------------------------------------\n`;
+
+            completeNewFeed.map(item => {
+              message += `<:twitter:393802607363358720>[${formatDate(item.date)}](<${item.url}>) ${item.title.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '')}\n`;
+            });
+
+            this.addToNotifyQueue(message);
+
+            if (exchange) {
+              exchange.feed = feed;
+              exchange.save();
+            } else {
+              const newExchangeFeed = new ExchangeFeed({
+                slug,
+                feed,
+              });
+              newExchangeFeed.save();
+            }
+          }
+        }
+      }, index * 5000);
     });
   }
 
@@ -115,16 +199,15 @@ class FeedBot {
       : null;
 
     // Check equal feed
-    if (coinPrevFeed &&
-      ((coinPrevFeed.twitter && coinPrevFeed.twitter[0]) || (coinPrevFeed.reddit && coinPrevFeed.reddit[0])) &&
-      ((feed.twitter && feed.twitter[0]) || (feed.reddit && feed.reddit[0]))
+    if (
+      feed.twitter && feed.twitter[0] && coinPrevFeed && coinPrevFeed.twitter && coinPrevFeed.twitter[0]
     ) {
       console.log('check feed');
       // Check feed with prev result
-      const twitterFeedEqual = this.checkFeedEqual(feed.twitter, coinPrevFeed.twitter);
-      const redditFeedEqual = this.checkFeedEqual(feed.reddit, coinPrevFeed.reddit);
+      const twitterFeedEqual = this.checkFeedEqual(feed.twitter, (coinPrevFeed || {}).twitter);
+      // const redditFeedEqual = this.checkFeedEqual(feed.reddit, (coinPrevFeed || {}).reddit);
 
-      if (!twitterFeedEqual.isEqual || !redditFeedEqual.isEqual) {
+      if (!twitterFeedEqual.isEqual) {
         // Push to discord ...
 
         // Print new feed
@@ -132,8 +215,7 @@ class FeedBot {
         const now = Date.now();
         const completeNewFeed = [
           ...twitterFeedEqual.newFeed,
-          ...redditFeedEqual.newFeed.slice(0, 3),
-        ].filter(item => (now - new Date(item.date).getTime() <= 4 * 3600 * 1000));
+        ].filter(item => item && (now - new Date(item.date).getTime() <= 12 * 3600 * 1000));
 
         if (completeNewFeed.length) {
           let message = `------------------------------------------------------------------------\n**${coinmarket.symbol}, ${id}** — btc ${coinmarket.percentBtcFromPrevCheck}% | usd ${coinmarket.percentUsdFromPrevCheck}%\n------------------------------------------------------------------------\n`;
@@ -148,6 +230,8 @@ class FeedBot {
       } else {
         console.log(`${id}: feed not changed`);
       }
+    } else {
+      console.log('Skip because not have new or prev feed');
     }
 
     // Save feed as prev feed
@@ -188,7 +272,7 @@ class FeedBot {
   notifyFromQueue() {
     if (this.notifyList && this.notifyList[0]) {
       const content = this.notifyList[0];
-      axios.post(this.config.discordWebhook, {
+      axios.post('https://discordapp.com/api/webhooks/396622238662524929/s1Et4W_UBCudB6-38rkM39xdS_8NivxKKDGYJOfeM3yREAKukFcBT12iO_8v4BD5PJ_V', {
         content,
       }, {
         headers: { 'content-type': 'application/json' },

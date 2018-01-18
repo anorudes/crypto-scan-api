@@ -1,28 +1,23 @@
-// @flow
 import rssParser from 'rss-parser';
 import Twitter from 'twitter';
 import removeHtmlTags from './utils/removeHtmlTags';
 
 class CryptoScanParser {
-  config: Object;
-
-  constructor(config: Object) {
+  constructor(config) {
     this.config = config;
 
     this.twitterClient = new Twitter(config.twitter);
   }
 
-  async parseTwitterFeed(
-    slug: string,
-  ): Promise<any> {
+  async parseTwitterFeed(slug) {
     // Parse twitter feed
-    return new Promise((resolve: Function) => {
+    return new Promise((resolve) => {
       const tweets = [];
       this.twitterClient.get(
         'statuses/user_timeline',
         { screen_name: slug, count: 200, exclude_replies: true, include_entities: false },
         (err, data) => {
-          data && data.map(tweet => {
+          data && data.map && data.map(tweet => {
             tweets.push({
               title: removeHtmlTags(tweet.text),
               url: `https://twitter.com/statuses/${tweet.id_str}`,
@@ -35,19 +30,16 @@ class CryptoScanParser {
     });
   }
 
-  async parseRSSFeed(
-    list: Array<Object>,
-    rssUrl: string,
-  ): Promise<any> {
+  async parseRSSFeed(list, rssUrl) {
     // Parse all feed url
 
     if (!list || !list[0]) return [];
     const result = [];
 
-    return new Promise((resolve: Function) => {
-      list.map((item: Object) => {
-        const url: string = rssUrl.replace('%SLUG%', item.slug);
-        const filterBy: Object = item.filterBy;
+    return new Promise((resolve) => {
+      list.map((item) => {
+        const url = rssUrl.replace('%SLUG%', item.slug);
+        const filterBy = item.filterBy;
 
         rssParser.parseURL(url, (err, parsed) => {
           if (parsed && parsed.feed && parsed.feed.entries) {
@@ -67,22 +59,14 @@ class CryptoScanParser {
           }
 
           resolve(result);
-        })
+        });
       });
     });
   }
 
-  _filterEntry(entry: Object, filterBy: Object = {}) {
+  _filterEntry(entry, filterBy) {
     // Filter rss entries by users name, regexes and keywords
-    const {
-      users,
-      regexes,
-      keywords,
-    }: {
-      users: Array<string>,
-      regexes: Array<string>,
-      keywords: Array<string>
-    } = filterBy;
+    const { users } = filterBy;
 
     let filtered = true;
 
